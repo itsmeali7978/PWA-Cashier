@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Authenticator PWA</title>
+    <meta name="theme-color" content="#0d0e15">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+    <div id="login-screen" class="screen view-active">
+        <div class="glass-panel">
+            <h2>Sign In</h2>
+            <p class="subtitle">Secure Authenticator</p>
+            <form id="login-form">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+                <div id="login-error" class="error-msg"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-screen" class="screen view-hidden">
+        <div class="navbar">
+            <span class="logo">Authenticator</span>
+            <button id="logout-btn" class="btn-text">Logout</button>
+        </div>
+        
+        <div class="main-content">
+            <div class="barcode-card glass-panel">
+                <div id="barcode-placeholder" class="placeholder">
+                    <span>Ready to Generate</span>
+                </div>
+                <div id="barcode-container" class="hidden">
+                    <svg id="barcode"></svg>
+                    <div id="timer-bar-bg" class="timer-bar-bg">
+                        <div id="timer-bar" class="timer-bar"></div>
+                    </div>
+                    <div class="timer-text"><span id="time-left">10</span>s remaining</div>
+                </div>
+                
+                <button id="generate-btn" class="btn-glow">Generate Barcode</button>
+                <div id="gen-msg" class="info-msg"></div>
+            </div>
+            
+            <div class="admin-panel glass-panel hidden">
+                <h3 id="admin-panel-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; user-select: none;">
+                    Admin Actions <span>▼</span>
+                </h3>
+                <div id="admin-panel-content" class="hidden" style="margin-top: 15px;">
+                    <div class="admin-actions">
+                    <button id="show-create-user-btn" class="btn-secondary">New User</button>
+                    <button id="show-change-pass-btn" class="btn-secondary">Change Password</button>
+                </div>
+                
+                <!-- Create User Form (hidden) -->
+                <form id="create-user-form" class="hidden admin-form">
+                    <h4>Create User</h4>
+                    <input type="text" id="new-username" placeholder="New Username" required>
+                    <input type="password" id="new-password" placeholder="New Password" required>
+                    <button type="submit" class="btn-primary btn-small">Create</button>
+                    <div id="cu-msg" class="form-msg"></div>
+                </form>
+                
+                <!-- Change Password Form (hidden) -->
+                <form id="change-pass-form" class="hidden admin-form">
+                    <h4>Change Password</h4>
+                    <input type="text" id="cp-username" placeholder="Username" required>
+                    <input type="password" id="cp-password" placeholder="New Password" required>
+                    <button type="submit" class="btn-primary btn-small">Update</button>
+                    <div id="cp-msg" class="form-msg"></div>
+                </form>
+
+                <!-- Barcode Config -->
+                <div class="admin-form settings-form">
+                    <h4>Barcode Config</h4>
+                    <div style="margin-top: 10px;">
+                        <input type="text" id="prefix-id-input" placeholder="PrefixId" style="margin-bottom: 15px;">
+                        <input type="text" id="bcd-api-val-input" placeholder="BcdAPIVal" style="margin-bottom: 15px; opacity: 0.7; cursor: not-allowed;" readonly title="Only updated via external APIs">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--text-muted); margin-bottom: 15px;">
+                            <input type="checkbox" id="default-toggle" style="width: auto; margin-bottom: 0;">
+                            Default
+                        </label>
+                        <input type="text" id="def-prfx-input" placeholder="DefPrfxId" style="margin-bottom: 15px;">
+                        <input type="text" id="def-sfx-input" placeholder="DefSfxId" style="margin-bottom: 15px;">
+                        <button id="save-config-btn" class="btn-primary btn-small">Save Config</button>
+                        <div id="config-msg" class="form-msg"></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator && location.protocol === 'https:') {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
+</body>
+</html>
