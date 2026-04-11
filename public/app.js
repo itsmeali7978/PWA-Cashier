@@ -153,6 +153,20 @@ document.addEventListener('DOMContentLoaded', () => {
         genMsg.textContent = '';
         genMsg.style.color = 'var(--success)';
         
+        try {
+            const res = await fetch('/api/config');
+            appConfig = await res.json();
+            
+            // Update admin UI just in case it is currently expanded
+            prefixIdInput.value = appConfig.prefixId || '';
+            defaultToggle.checked = appConfig.isDefault || false;
+            defPrfxInput.value = appConfig.defPrfxId || '';
+            defSfxInput.value = appConfig.defSfxId || '';
+            bcdAPIValInput.value = appConfig.bcdAPIVal || '';
+        } catch(e) {
+            console.error('Failed to sync freshest config', e);
+        }
+        
         const renderBarcode = (val) => {
             JsBarcode("#barcode", val, {
                 displayValue: false,
@@ -165,41 +179,22 @@ document.addEventListener('DOMContentLoaded', () => {
             startTimer();
         };
 
-        const renderDefault = () => {
+        if (appConfig.isDefault) {
              const defP = appConfig.defPrfxId || '';
              const defS = appConfig.defSfxId || '';
              const finalVal = `${defP}\t${defS}`;
              renderBarcode(finalVal);
-             genMsg.textContent = 'Using default backup values.';
+             genMsg.textContent = 'Using default config values.';
              genMsg.style.color = '#ffb700'; // Warning color
-        };
+        } else {
+             const pre = appConfig.prefixId || '';
+             const apiVal = appConfig.bcdAPIVal || '';
+             const finalVal = `${pre}\t${apiVal}`;
+             renderBarcode(finalVal);
+        }
         
-        if (appConfig.isDefault) {
-            renderDefault();
-            generateBtn.innerHTML = 'Generate Barcode';
-            generateBtn.disabled = false;
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/barcode-data');
-            const data = await res.json();
-            
-            if (data.success) {
-                let finalBarcodeValue = data.erpReference;
-                if (appConfig.prefixId) {
-                    finalBarcodeValue = `${appConfig.prefixId}\t${data.erpReference}`;
-                }
-                renderBarcode(finalBarcodeValue);
-            } else {
-                renderDefault();
-            }
-        } catch (err) {
-            renderDefault();
-        } finally {
-            generateBtn.innerHTML = 'Generate Barcode';
-            generateBtn.disabled = false;
-        }
+        generateBtn.innerHTML = 'Generate Barcode';
+        generateBtn.disabled = false;
     });
 
     function resetBarcodeView() {
