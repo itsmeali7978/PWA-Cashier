@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const { MongoClient } = require('mongodb');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,33 +14,84 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// MongoDB Setup
+const MONGO_URI = process.env.MONGO_URI;
+let db = null;
+
+if (MONGO_URI) {
+    const client = new MongoClient(MONGO_URI);
+    client.connect().then(() => {
+        db = client.db('pwa_cashier');
+        console.log('Connected to MongoDB Cloud Database!');
+    }).catch(err => console.error('MongoDB connection error:', err));
+} else {
+    console.log('No MONGO_URI provided. Falling back to local JSON files.');
+}
+
 // Helper to read users
-function readUsers() {
+async function readUsers() {
+    if (db) {
+        try {
+            const users = await db.collection('users').find({}).toArray();
+            if (users.length === 0) {
+                return [{ id: 1, username: 'admin', password: 'password123' }];
+            }
+            return users;
+        } catch (e) {
+            console.error('DB Read Error:', e);
+            return [];
+        }
+    }
+    
     try {
         const data = fs.readFileSync(USERS_FILE, 'utf8');
         return JSON.parse(data);
     } catch (err) {
-        return [];
+        return [{ id: 1, username: 'admin', password: 'password123' }];
     }
 }
 
 // Helper to write users
-function writeUsers(users) {
+async function writeUsers(users) {
+    if (db) {
+        await db.collection('users').deleteMany({});
+        if (users.length > 0) {
+            await db.collection('users').insertMany(users);
+        }
+        return;
+    }
     fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
 }
 
 // Helper to read config
-function readConfig() {
+async function readConfig() {
+    const defaultConfig = { prefixId: '', isDefault: false, defPrfxId: '', defSfxId: '', bcdAPIVal: '' };
+    if (db) {
+        try {
+            const config = await db.collection('config').findOne({ _id: 'main' });
+            return config ? { ...defaultConfig, ...config } : defaultConfig;
+        } catch (e) {
+            return defaultConfig;
+        }
+    }
     try {
         const data = fs.readFileSync(CONFIG_FILE, 'utf8');
-        return JSON.parse(data);
+        return { ...defaultConfig, ...JSON.parse(data) };
     } catch (err) {
-        return { prefixId: '', isDefault: false, defPrfxId: '', defSfxId: '', bcdAPIVal: '' };
+        return defaultConfig;
     }
 }
 
 // Helper to write config
-function writeConfig(config) {
+async function writeConfig(config) {
+    if (db) {
+        await db.collection('config').updateOne(
+            { _id: 'main' },
+            { $set: config },
+            { upsert: true }
+        );
+        return;
+    }
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
 }
 
@@ -47,9 +100,9 @@ function writeConfig(config) {
 // ---------------------------
 
 // Login
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-    const users = readUsers();
+    const users = await readUsers();
     
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
@@ -60,25 +113,25 @@ app.post('/api/login', (req, res) => {
 });
 
 // Admin - Create user
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
         return res.status(400).json({ success: false, message: 'Username and password are required' });
     }
     
-    const users = readUsers();
+    const users = await readUsers();
     if (users.find(u => u.username === username)) {
         return res.status(400).json({ success: false, message: 'Username already exists' });
     }
     
     users.push({ id: Date.now(), username, password });
-    writeUsers(users);
+    await writeUsers(users);
     
     res.json({ success: true, message: 'User created successfully' });
 });
 
 // Admin - Change password
-app.put('/api/users/:username', (req, res) => {
+app.put('/api/users/:username', async (req, res) => {
     const { username } = req.params;
     const { newPassword } = req.body;
     
@@ -86,7 +139,7 @@ app.put('/api/users/:username', (req, res) => {
         return res.status(400).json({ success: false, message: 'New password is required' });
     }
     
-    const users = readUsers();
+    const users = await readUsers();
     const userIndex = users.findIndex(u => u.username === username);
     
     if (userIndex === -1) {
@@ -94,27 +147,19 @@ app.put('/api/users/:username', (req, res) => {
     }
     
     users[userIndex].password = newPassword;
-    writeUsers(users);
+    await writeUsers(users);
     
     res.json({ success: true, message: 'Password updated successfully' });
 });
 
 function findVendorData(data, targetVendor) {
-    // The API returns the array of requests under "value"
     const requests = Array.isArray(data) ? data : (data.value || data.requests || []);
-    
-    // Find the request where the vendor matches "VEND0001"
     return requests.find(req => {
         if (!req || typeof req !== 'object') return false;
-        
-        // Sometimes vendor is just a string
         if (req.vendor === targetVendor || req.vendorCode === targetVendor) return true;
-        
-        // Or it's a nested object (which contains the navVendorNo)
         if (req.vendor && typeof req.vendor === 'object') {
             return req.vendor.navVendorNo === targetVendor || req.vendor.vendorCode === targetVendor;
         }
-        
         return false;
     });
 }
@@ -122,12 +167,12 @@ function findVendorData(data, targetVendor) {
 // ---------------------------
 // Config Routes
 // ---------------------------
-app.get('/api/config', (req, res) => {
-    res.json(readConfig());
+app.get('/api/config', async (req, res) => {
+    res.json(await readConfig());
 });
 
-app.post('/api/config', (req, res) => {
-    const config = readConfig();
+app.post('/api/config', async (req, res) => {
+    const config = await readConfig();
     if (req.body.prefixId !== undefined) {
         config.prefixId = req.body.prefixId;
     }
@@ -143,28 +188,28 @@ app.post('/api/config', (req, res) => {
     if (req.body.bcdAPIVal !== undefined) {
         config.bcdAPIVal = req.body.bcdAPIVal;
     }
-    writeConfig(config);
+    await writeConfig(config);
     res.json({ success: true, message: 'Config updated', config });
 });
 
 // External quick update APIs
-app.get('/api/update-sfx', (req, res) => {
+app.get('/api/update-sfx', async (req, res) => {
     const newVal = req.query.val;
     if (newVal !== undefined) {
-        const config = readConfig();
+        const config = await readConfig();
         config.defSfxId = newVal;
-        writeConfig(config);
+        await writeConfig(config);
         return res.json({ success: true, message: 'DefSfxId updated externally', defSfxId: config.defSfxId });
     }
     res.status(400).json({ success: false, message: 'Missing val parameter. Usage: /api/update-sfx?val=NEW_VALUE' });
 });
 
-app.get('/api/update-bcd-api-val', (req, res) => {
+app.get('/api/update-bcd-api-val', async (req, res) => {
     const newVal = req.query.val;
     if (newVal !== undefined) {
-        const config = readConfig();
+        const config = await readConfig();
         config.bcdAPIVal = newVal;
-        writeConfig(config);
+        await writeConfig(config);
         return res.json({ success: true, message: 'BcdAPIVal updated externally', bcdAPIVal: config.bcdAPIVal });
     }
     res.status(400).json({ success: false, message: 'Missing val parameter. Usage: /api/update-bcd-api-val?val=NEW_VALUE' });
@@ -186,7 +231,6 @@ app.get('/api/barcode-data', async (req, res) => {
         }
 
         const data = await response.json();
-        
         const targetRequest = findVendorData(data, 'VEND0001');
         
         if (!targetRequest) {
