@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auth-pwa-v1';
+const CACHE_NAME = 'auth-pwa-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -9,16 +9,26 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        // Safe addAll to prevent failure on uncacheable resources
         return Promise.all(
-          urlsToCache.map(url => {
-            return cache.add(url).catch(err => console.log('Failed to cache', url, err));
-          })
+          urlsToCache.map(url => cache.add(url).catch(err => console.log('Failed to cache', url, err)))
         );
       })
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) return caches.delete(cache);
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
