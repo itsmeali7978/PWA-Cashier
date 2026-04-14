@@ -167,7 +167,7 @@ button {
 }
 
 .btn-glow:hover {
-    color: #000;
+    color: #fff; /* Changed from #000 to white to ensure visibility */
 }
 
 .btn-glow:hover::before {

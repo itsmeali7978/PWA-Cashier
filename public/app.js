@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Generate Barcode
     generateBtn.addEventListener('click', async () => {
-        generateBtn.innerHTML = 'Generating...';
+        generateBtn.textContent = 'Generating...';
         generateBtn.disabled = true;
         genMsg.textContent = '';
         genMsg.style.color = 'var(--success)';
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             genMsg.textContent = 'Error syncing config. Try again.';
             genMsg.style.color = 'var(--danger)';
         } finally {
-            generateBtn.innerHTML = 'Generate Barcode';
+            generateBtn.textContent = 'Generate Barcode';
             generateBtn.disabled = false;
         }
     });
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         barcodePlaceholder.classList.remove('hidden');
         barcodeContainer.classList.add('hidden');
         generateBtn.classList.remove('hidden');
-        generateBtn.innerHTML = 'Generate Barcode';
+        generateBtn.textContent = 'Generate Barcode';
         generateBtn.disabled = false;
         genMsg.textContent = '';
     }
