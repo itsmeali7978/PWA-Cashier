@@ -157,49 +157,53 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch('/api/config');
             appConfig = await res.json();
             
-            // Update admin UI just in case it is currently expanded
+            // Sync UI
             prefixIdInput.value = appConfig.prefixId || '';
             defaultToggle.checked = appConfig.isDefault || false;
             defPrfxInput.value = appConfig.defPrfxId || '';
             defSfxInput.value = appConfig.defSfxId || '';
             bcdAPIValInput.value = appConfig.bcdAPIVal || '';
-        } catch(e) {
-            console.error('Failed to sync freshest config', e);
-        }
-        
-        const renderBarcode = (val) => {
-            JsBarcode("#barcode", val, {
-                displayValue: false,
-                lineColor: "#000",
-                background: "white",
-                width: 3,
-                height: 80,
-                margin: 0
-            });
-            startTimer();
-        };
 
-        if (appConfig.isDefault) {
-             const defP = appConfig.defPrfxId || '';
-             const defS = appConfig.defSfxId || '';
-             const finalVal = `${defP}\t${defS}`;
-             renderBarcode(finalVal);
-             genMsg.textContent = 'Using default config values.';
-             genMsg.style.color = '#ffb700'; // Warning color
-        } else {
-             const pre = appConfig.prefixId || '';
-             const apiVal = appConfig.bcdAPIVal || '';
-             const finalVal = `${pre}\t${apiVal}`;
-             renderBarcode(finalVal);
+            const renderBarcode = (val) => {
+                JsBarcode("#barcode", val, {
+                    displayValue: false,
+                    lineColor: "#000",
+                    background: "white",
+                    width: 3,
+                    height: 80,
+                    margin: 0
+                });
+                startTimer();
+            };
+
+            if (appConfig.isDefault) {
+                const defP = appConfig.defPrfxId || '';
+                const defS = appConfig.defSfxId || '';
+                const finalVal = `${defP}\t${defS}`;
+                renderBarcode(finalVal);
+                genMsg.textContent = 'Using default config values.';
+                genMsg.style.color = '#ffb700';
+            } else {
+                const pre = appConfig.prefixId || '';
+                const apiVal = appConfig.bcdAPIVal || '';
+                const finalVal = `${pre}\t${apiVal}`;
+                renderBarcode(finalVal);
+            }
+        } catch(e) {
+            console.error('Generation Error:', e);
+            genMsg.textContent = 'Error syncing config. Try again.';
+            genMsg.style.color = 'var(--danger)';
+        } finally {
+            generateBtn.innerHTML = 'Generate Barcode';
+            generateBtn.disabled = false;
         }
-        
-        generateBtn.innerHTML = 'Generate Barcode';
-        generateBtn.disabled = false;
     });
 
     function resetBarcodeView() {
         barcodePlaceholder.classList.remove('hidden');
         barcodeContainer.classList.add('hidden');
+        generateBtn.innerHTML = 'Generate Barcode';
+        generateBtn.disabled = false;
         genMsg.textContent = '';
     }
 
