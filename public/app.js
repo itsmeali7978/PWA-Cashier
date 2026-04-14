@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetBarcodeView() {
         barcodePlaceholder.classList.remove('hidden');
         barcodeContainer.classList.add('hidden');
+        generateBtn.classList.remove('hidden');
         generateBtn.innerHTML = 'Generate Barcode';
         generateBtn.disabled = false;
         genMsg.textContent = '';
@@ -211,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearInterval(timerInterval);
         barcodePlaceholder.classList.add('hidden');
         barcodeContainer.classList.remove('hidden');
+        generateBtn.classList.add('hidden');
         
         // Timer logic
         let timeLeft = 10;

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auth-pwa-v4';
+const CACHE_NAME = 'auth-pwa-v5';
 const urlsToCache = [
   '/',
   '/index.html',
