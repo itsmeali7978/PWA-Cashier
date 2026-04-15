@@ -366,3 +366,32 @@ svg#barcode {
 .shake {
     animation: shake 0.3s ease-in-out;
 }
+
+.bcd-value-display {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 15px;
+    border-radius: 8px;
+    letter-spacing: 2px;
+    border: 1px solid var(--glass-border);
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.user-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}

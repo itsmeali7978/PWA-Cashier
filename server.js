@@ -32,9 +32,10 @@ if (MONGO_URI) {
 async function readUsers() {
     if (db) {
         try {
-            const users = await db.collection('users').find({}).toArray();
+            const usersRaw = await db.collection('users').find({}).toArray();
+            const users = usersRaw.map(u => ({ ...u, showBcdValue: u.showBcdValue ?? false }));
             if (users.length === 0) {
-                return [{ id: 1, username: 'admin', password: 'password123' }];
+                return [{ id: 1, username: 'admin', password: 'password123', showBcdValue: false }];
             }
             return users;
         } catch (e) {
@@ -45,9 +46,10 @@ async function readUsers() {
     
     try {
         const data = fs.readFileSync(USERS_FILE, 'utf8');
-        return JSON.parse(data);
+        const users = JSON.parse(data);
+        return users.map(u => ({ ...u, showBcdValue: u.showBcdValue ?? false }));
     } catch (err) {
-        return [{ id: 1, username: 'admin', password: 'password123' }];
+        return [{ id: 1, username: 'admin', password: 'password123', showBcdValue: false }];
     }
 }
 
@@ -106,7 +108,7 @@ app.post('/api/login', async (req, res) => {
     
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
-        res.json({ success: true, message: 'Login successful', username: user.username });
+        res.json({ success: true, message: 'Login successful', username: user.username, showBcdValue: !!user.showBcdValue });
     } else {
         res.status(401).json({ success: false, message: 'Invalid username or password' });
     }
@@ -124,7 +126,7 @@ app.post('/api/users', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Username already exists' });
     }
     
-    users.push({ id: Date.now(), username, password });
+    users.push({ id: Date.now(), username, password, showBcdValue: !!req.body.showBcdValue });
     await writeUsers(users);
     
     res.json({ success: true, message: 'User created successfully' });
@@ -150,6 +152,36 @@ app.put('/api/users/:username', async (req, res) => {
     await writeUsers(users);
     
     res.json({ success: true, message: 'Password updated successfully' });
+});
+
+// Admin - List users
+app.get('/api/users', async (req, res) => {
+    const users = await readUsers();
+    // Don't send passwords
+    const safeUsers = users.map(({ password, ...u }) => u);
+    res.json(safeUsers);
+});
+
+// Admin - Toggle showBcdValue
+app.put('/api/users/:username/settings', async (req, res) => {
+    const { username } = req.params;
+    const { showBcdValue } = req.body;
+    
+    if (showBcdValue === undefined) {
+        return res.status(400).json({ success: false, message: 'showBcdValue is required' });
+    }
+    
+    const users = await readUsers();
+    const userIndex = users.findIndex(u => u.username === username);
+    
+    if (userIndex === -1) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    
+    users[userIndex].showBcdValue = !!showBcdValue;
+    await writeUsers(users);
+    
+    res.json({ success: true, message: 'Settings updated successfully' });
 });
 
 function findVendorData(data, targetVendor) {

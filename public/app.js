@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generate-btn');
     const barcodePlaceholder = document.getElementById('barcode-placeholder');
     const barcodeContainer = document.getElementById('barcode-container');
+    const bcdValueDisplay = document.getElementById('bcd-value-display');
     const genMsg = document.getElementById('gen-msg');
     
     // Timer
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isHidden = adminPanelContent.classList.contains('hidden');
             adminPanelContent.classList.toggle('hidden');
             adminPanelHeader.querySelector('span').textContent = isHidden ? '▲' : '▼';
+            if (isHidden) loadUserManagement();
         });
     }
     
@@ -40,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const defPrfxInput = document.getElementById('def-prfx-input');
     const defSfxInput = document.getElementById('def-sfx-input');
     const bcdAPIValInput = document.getElementById('bcd-api-val-input');
+    const userListContainer = document.getElementById('user-list-container');
+    const setupShowBcd = document.getElementById('setup-show-bcd');
     const saveConfigBtn = document.getElementById('save-config-btn');
     const configMsg = document.getElementById('config-msg');
     
@@ -122,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (data.success) {
                 localStorage.setItem('auth_user', data.username);
+                localStorage.setItem('show_bcd_val', data.showBcdValue);
                 loginForm.reset();
                 showScreen('app');
                 toggleAdminPanel(data.username);
@@ -141,6 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logout
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('auth_user');
+        localStorage.removeItem('show_bcd_val');
         clearInterval(timerInterval);
         resetBarcodeView();
         showScreen('login');
@@ -188,6 +194,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const apiVal = appConfig.bcdAPIVal || '';
                 const finalVal = `${pre}\t${apiVal}`;
                 renderBarcode(finalVal);
+             
+                // Show value below barcode if enabled for this user
+                const shouldShow = localStorage.getItem('show_bcd_val') === 'true';
+                if (shouldShow) {
+                    bcdValueDisplay.textContent = apiVal;
+                    bcdValueDisplay.classList.remove('hidden');
+                } else {
+                    bcdValueDisplay.classList.add('hidden');
+                }
             }
         } catch(e) {
             console.error('Generation Error:', e);
@@ -206,6 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
         generateBtn.textContent = 'Generate Barcode';
         generateBtn.disabled = false;
         genMsg.textContent = '';
+        bcdValueDisplay.classList.add('hidden');
+        bcdValueDisplay.textContent = '';
     }
 
     function startTimer() {
@@ -296,8 +313,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const username = document.getElementById('new-username').value;
         const password = document.getElementById('new-password').value;
+        const showBcdValue = setupShowBcd.checked;
         const msgEl = document.getElementById('cu-msg');
-        await adminAction('/api/users', 'POST', { username, password }, msgEl, createUserForm);
+        await adminAction('/api/users', 'POST', { username, password, showBcdValue }, msgEl, createUserForm);
+        loadUserManagement();
     });
     
     // Change Password Form
