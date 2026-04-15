@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const u = e.target.dataset.user;
                     const val = e.target.checked;
                     try {
-                        const res = await fetch(\`/api/users/\${u}/settings\`, {
+                        const res = await fetch(`/api/users/${u}/settings`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ showBcdValue: val })
