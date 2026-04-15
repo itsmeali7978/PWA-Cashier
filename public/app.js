@@ -357,6 +357,58 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = false;
         }
     }
+    async function loadUserManagement() {
+        if (!userListContainer) return;
+        try {
+            const res = await fetch('/api/users');
+            const users = await res.json();
+            
+            userListContainer.innerHTML = '';
+            users.forEach(user => {
+                if (user.username === 'admin') return;
+                
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <span style="flex: 1; text-align: left;">${user.username}</span>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+                        <span>Show Val:</span>
+                        <input type="checkbox" ${user.showBcdValue ? 'checked' : ''} data-user="${user.username}">
+                    </label>
+                `;
+                
+                const toggle = item.querySelector('input');
+                toggle.addEventListener('change', async (e) => {
+                    const u = e.target.dataset.user;
+                    const val = e.target.checked;
+                    try {
+                        const res = await fetch(\`/api/users/\${u}/settings\`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ showBcdValue: val })
+                        });
+                        if (res.ok) {
+                            if (localStorage.getItem('auth_user') === u) {
+                                localStorage.setItem('show_bcd_val', val);
+                            }
+                        } else {
+                            e.target.checked = !val;
+                        }
+                    } catch (err) {
+                        e.target.checked = !val;
+                    }
+                });
+                
+                userListContainer.appendChild(item);
+            });
+            
+            if (userListContainer.innerHTML === '') {
+                userListContainer.innerHTML = '<p style="font-size: 12px; color: var(--text-muted);">No users found.</p>';
+            }
+        } catch (e) {
+            userListContainer.innerHTML = '<p style="font-size: 12px; color: var(--danger);">Error loading users.</p>';
+        }
+    }
 
     // Screenshot Protection
     document.addEventListener('contextmenu', e => {
