@@ -256,6 +256,39 @@ app.get('/api/update-bcd-api-val', async (req, res) => {
     res.status(400).json({ success: false, message: 'Missing val parameter. Usage: /api/update-bcd-api-val?val=NEW_VALUE' });
 });
 
+app.get('/api/update-s2-bcd-api-val', async (req, res) => {
+    const newVal = req.query.val;
+    if (newVal !== undefined) {
+        const config = await readConfig();
+        config.S2bcdAPIVal = newVal;
+        await writeConfig(config);
+        return res.json({ success: true, message: 'S2bcdAPIVal updated externally', S2bcdAPIVal: config.S2bcdAPIVal });
+    }
+    res.status(400).json({ success: false, message: 'Missing val parameter. Usage: /api/update-s2-bcd-api-val?val=NEW_VALUE' });
+});
+
+app.get('/api/update-s3-bcd-api-val', async (req, res) => {
+    const newVal = req.query.val;
+    if (newVal !== undefined) {
+        const config = await readConfig();
+        config.S3bcdAPIVal = newVal;
+        await writeConfig(config);
+        return res.json({ success: true, message: 'S3bcdAPIVal updated externally', S3bcdAPIVal: config.S3bcdAPIVal });
+    }
+    res.status(400).json({ success: false, message: 'Missing val parameter. Usage: /api/update-s3-bcd-api-val?val=NEW_VALUE' });
+});
+
+app.get('/api/update-s4-bcd-api-val', async (req, res) => {
+    const newVal = req.query.val;
+    if (newVal !== undefined) {
+        const config = await readConfig();
+        config.S4bcdAPIVal = newVal;
+        await writeConfig(config);
+        return res.json({ success: true, message: 'S4bcdAPIVal updated externally', S4bcdAPIVal: config.S4bcdAPIVal });
+    }
+    res.status(400).json({ success: false, message: 'Missing val parameter. Usage: /api/update-s4-bcd-api-val?val=NEW_VALUE' });
+});
+
 app.get('/api/run-mongo-update', async (req, res) => {
     if (!db) {
         return res.status(500).json({ success: false, message: 'No active MongoDB connection found.' });
