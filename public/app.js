@@ -313,9 +313,11 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const username = document.getElementById('new-username').value;
         const password = document.getElementById('new-password').value;
+        const locationVal = document.getElementById('new-location').value;
+        const location = locationVal ? locationVal : 'S0001';
         const showBcdValue = setupShowBcd.checked;
         const msgEl = document.getElementById('cu-msg');
-        await adminAction('/api/users', 'POST', { username, password, showBcdValue }, msgEl, createUserForm);
+        await adminAction('/api/users', 'POST', { username, password, showBcdValue, location }, msgEl, createUserForm);
         loadUserManagement();
     });
     
