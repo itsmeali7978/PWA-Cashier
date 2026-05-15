@@ -33,9 +33,9 @@ async function readUsers() {
     if (db) {
         try {
             const usersRaw = await db.collection('users').find({}).toArray();
-            const users = usersRaw.map(u => ({ ...u, showBcdValue: u.showBcdValue ?? false }));
+            const users = usersRaw.map(u => ({ ...u, showBcdValue: u.showBcdValue ?? false, location: u.location || 'S0001' }));
             if (users.length === 0) {
-                return [{ id: 1, username: 'admin', password: 'password123', showBcdValue: false }];
+                return [{ id: 1, username: 'admin', password: 'password123', showBcdValue: false, location: 'S0001' }];
             }
             return users;
         } catch (e) {
@@ -47,9 +47,9 @@ async function readUsers() {
     try {
         const data = fs.readFileSync(USERS_FILE, 'utf8');
         const users = JSON.parse(data);
-        return users.map(u => ({ ...u, showBcdValue: u.showBcdValue ?? false }));
+        return users.map(u => ({ ...u, showBcdValue: u.showBcdValue ?? false, location: u.location || 'S0001' }));
     } catch (err) {
-        return [{ id: 1, username: 'admin', password: 'password123', showBcdValue: false }];
+        return [{ id: 1, username: 'admin', password: 'password123', showBcdValue: false, location: 'S0001' }];
     }
 }
 
@@ -126,7 +126,7 @@ app.post('/api/users', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Username already exists' });
     }
     
-    users.push({ id: Date.now(), username, password, showBcdValue: !!req.body.showBcdValue });
+    users.push({ id: Date.now(), username, password, showBcdValue: !!req.body.showBcdValue, location: req.body.location || 'S0001' });
     await writeUsers(users);
     
     res.json({ success: true, message: 'User created successfully' });

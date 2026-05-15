@@ -2,11 +2,13 @@
   {
     "id": 1,
     "username": "admin",
-    "password": "password123"
+    "password": "password123",
+    "location": "S0001"
   },
   {
     "id": 1775759555380,
     "username": "1185",
-    "password": "11851185"
+    "password": "11851185",
+    "location": "S0001"
   }
 ]
