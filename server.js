@@ -247,6 +247,21 @@ app.get('/api/update-bcd-api-val', async (req, res) => {
     res.status(400).json({ success: false, message: 'Missing val parameter. Usage: /api/update-bcd-api-val?val=NEW_VALUE' });
 });
 
+app.get('/api/run-mongo-update', async (req, res) => {
+    if (!db) {
+        return res.status(500).json({ success: false, message: 'No active MongoDB connection found.' });
+    }
+    try {
+        const result = await db.collection('users').updateMany(
+            {},
+            { $set: { location: "S0001" } }
+        );
+        return res.json({ success: true, message: `Successfully updated ${result.modifiedCount} users to S0001.` });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // ---------------------------
 // Barcode Data Route
 // ---------------------------
