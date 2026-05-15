@@ -42,12 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const defPrfxInput = document.getElementById('def-prfx-input');
     const defSfxInput = document.getElementById('def-sfx-input');
     const bcdAPIValInput = document.getElementById('bcd-api-val-input');
+    const s2BcdAPIValInput = document.getElementById('s2-bcd-api-val-input');
+    const s3BcdAPIValInput = document.getElementById('s3-bcd-api-val-input');
+    const s4BcdAPIValInput = document.getElementById('s4-bcd-api-val-input');
     const userListContainer = document.getElementById('user-list-container');
     const setupShowBcd = document.getElementById('setup-show-bcd');
     const saveConfigBtn = document.getElementById('save-config-btn');
     const configMsg = document.getElementById('config-msg');
     
-    let appConfig = { prefixId: '', isDefault: false, defPrfxId: '', defSfxId: '', bcdAPIVal: '' };
+    let appConfig = { prefixId: '', isDefault: false, defPrfxId: '', defSfxId: '', bcdAPIVal: '', S2bcdAPIVal: '', S3bcdAPIVal: '', S4bcdAPIVal: '' };
     
     async function fetchConfig() {
         try {
@@ -58,6 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
             defPrfxInput.value = appConfig.defPrfxId || '';
             defSfxInput.value = appConfig.defSfxId || '';
             bcdAPIValInput.value = appConfig.bcdAPIVal || '';
+            s2BcdAPIValInput.value = appConfig.S2bcdAPIVal || '';
+            s3BcdAPIValInput.value = appConfig.S3bcdAPIVal || '';
+            s4BcdAPIValInput.value = appConfig.S4bcdAPIVal || '';
         } catch(e) {}
     }
     fetchConfig();
@@ -169,6 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
             defPrfxInput.value = appConfig.defPrfxId || '';
             defSfxInput.value = appConfig.defSfxId || '';
             bcdAPIValInput.value = appConfig.bcdAPIVal || '';
+            s2BcdAPIValInput.value = appConfig.S2bcdAPIVal || '';
+            s3BcdAPIValInput.value = appConfig.S3bcdAPIVal || '';
+            s4BcdAPIValInput.value = appConfig.S4bcdAPIVal || '';
 
             const renderBarcode = (val) => {
                 JsBarcode("#barcode", val, {
@@ -284,6 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
         appConfig.defPrfxId = defPrfxInput.value;
         appConfig.defSfxId = defSfxInput.value;
         appConfig.bcdAPIVal = bcdAPIValInput.value;
+        appConfig.S2bcdAPIVal = s2BcdAPIValInput.value;
+        appConfig.S3bcdAPIVal = s3BcdAPIValInput.value;
+        appConfig.S4bcdAPIVal = s4BcdAPIValInput.value;
         saveConfigBtn.disabled = true;
         configMsg.textContent = 'Saving...';
         configMsg.style.color = 'var(--text-muted)';

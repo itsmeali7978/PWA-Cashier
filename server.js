@@ -67,7 +67,7 @@ async function writeUsers(users) {
 
 // Helper to read config
 async function readConfig() {
-    const defaultConfig = { prefixId: '', isDefault: false, defPrfxId: '', defSfxId: '', bcdAPIVal: '' };
+    const defaultConfig = { prefixId: '', isDefault: false, defPrfxId: '', defSfxId: '', bcdAPIVal: '', S2bcdAPIVal: '', S3bcdAPIVal: '', S4bcdAPIVal: '' };
     if (db) {
         try {
             const config = await db.collection('config').findOne({ _id: 'main' });
@@ -219,6 +219,15 @@ app.post('/api/config', async (req, res) => {
     }
     if (req.body.bcdAPIVal !== undefined) {
         config.bcdAPIVal = req.body.bcdAPIVal;
+    }
+    if (req.body.S2bcdAPIVal !== undefined) {
+        config.S2bcdAPIVal = req.body.S2bcdAPIVal;
+    }
+    if (req.body.S3bcdAPIVal !== undefined) {
+        config.S3bcdAPIVal = req.body.S3bcdAPIVal;
+    }
+    if (req.body.S4bcdAPIVal !== undefined) {
+        config.S4bcdAPIVal = req.body.S4bcdAPIVal;
     }
     await writeConfig(config);
     res.json({ success: true, message: 'Config updated', config });
