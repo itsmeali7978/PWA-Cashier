@@ -108,7 +108,7 @@ app.post('/api/login', async (req, res) => {
     
     const user = users.find(u => u.username === username && u.password === password);
     if (user) {
-        res.json({ success: true, message: 'Login successful', username: user.username, showBcdValue: !!user.showBcdValue });
+        res.json({ success: true, message: 'Login successful', username: user.username, showBcdValue: !!user.showBcdValue, location: user.location || 'S0001' });
     } else {
         res.status(401).json({ success: false, message: 'Invalid username or password' });
     }

@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success) {
                 localStorage.setItem('auth_user', data.username);
                 localStorage.setItem('show_bcd_val', data.showBcdValue);
+                localStorage.setItem('user_location', data.location);
                 loginForm.reset();
                 showScreen('app');
                 toggleAdminPanel(data.username);
@@ -153,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('auth_user');
         localStorage.removeItem('show_bcd_val');
+        localStorage.removeItem('user_location');
         clearInterval(timerInterval);
         resetBarcodeView();
         showScreen('login');
@@ -200,7 +202,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 genMsg.style.color = '#ffb700';
             } else {
                 const pre = appConfig.prefixId || '';
-                const apiVal = appConfig.bcdAPIVal || '';
+                const loc = localStorage.getItem('user_location') || 'S0001';
+                let apiVal = '';
+
+                if (loc === 'S0001') {
+                    apiVal = appConfig.bcdAPIVal || '';
+                } else if (loc === 'S0002') {
+                    apiVal = appConfig.S2bcdAPIVal || '';
+                } else if (loc === 'S0003') {
+                    apiVal = appConfig.S3bcdAPIVal || '';
+                } else if (loc === 'S0004') {
+                    apiVal = appConfig.S4bcdAPIVal || '';
+                } else {
+                    apiVal = appConfig.bcdAPIVal || '';
+                }
+
                 const finalVal = `${pre}\t${apiVal}`;
                 renderBarcode(finalVal);
              
